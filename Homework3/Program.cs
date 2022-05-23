@@ -3,11 +3,12 @@ using System.Data;
 using System.Data.SqlClient;
 using DbContext = Microsoft.EntityFrameworkCore.DbContext;
 
-class Homework3
+public class MainHomework3
 {
     static void Main(string[] args)
     {
-
+        // DB and table create commented out for first run. Could add logic to check for them and only create if missing.
+        /*
         // CREATE DB
         String createStr;
         SqlConnection myConn = new SqlConnection("Server=CS302\\SQLEXPRESS,53437;User ID=sqlusr;Password=sqluser123!");
@@ -46,7 +47,7 @@ class Homework3
         tableStr = @"
             USE[Contacts]
 
-            /****** Object:  Table [dbo].[Contact]    Script Date: 4/15/2022 12:59:30 PM ******/
+            //Object:  Table [dbo].[Contact]    Script Date: 4/15/2022 12:59:30 PM
             SET ANSI_NULLS ON
 
             SET QUOTED_IDENTIFIER ON
@@ -73,7 +74,7 @@ class Homework3
         {
             myConn.Open();
             myTableCommand.ExecuteNonQuery();
-            Console.WriteLine("DataBase is table created Successfully");
+            Console.WriteLine("DataBase table created Successfully");
         }
         catch (System.Exception ex)
         {
@@ -86,14 +87,18 @@ class Homework3
                 myConn.Close();
             }
         }
+        */
 
-        // ADD RECORDS
-        using (var context = new ContactContext())
+        // Scaffold-DbContext "Server=CS302\\SQLEXPRESS,53437;User ID=sqlusr;Password=sqluser123!;Initial Catalog=Contacts" -OutputDir Db Microsoft.EntityFrameworkCore.SqlServer
+
+
+        using (var context = new Homework3.Db.ContactsContext())
         {
+            // ADD RECORDS
+            Console.WriteLine("Creating contacts...");
 
-            var contact1 = new Contact()
+            var contact1 = new Homework3.Db.Contact()
             {
-                ContactId = 12112,
                 ContactName = "Bill",
                 ContactEmail = "bill@google.com",
                 ContactPhoneType = "Home",
@@ -105,9 +110,8 @@ class Homework3
 
             context.Contacts.Add(contact1);
 
-            var contact2 = new Contact()
+            var contact2 = new Homework3.Db.Contact()
             {
-                ContactId = 12113,
                 ContactName = "Bob",
                 ContactEmail = "bob@google.com",
                 ContactPhoneType = "Home",
@@ -119,9 +123,8 @@ class Homework3
 
             context.Contacts.Add(contact2);
 
-            var contact3 = new Contact()
+            var contact3 = new Homework3.Db.Contact()
             {
-                ContactId = 12114,
                 ContactName = "Beth",
                 ContactEmail = "beth@google.com",
                 ContactPhoneType = "Home",
@@ -132,27 +135,63 @@ class Homework3
             };
 
             context.Contacts.Add(contact3);
+
             context.SaveChanges();
-        }
-    }
+            Console.WriteLine("Contacts created!");
 
-    // https://www.entityframeworktutorial.net/efcore/entity-framework-core-dbcontext.aspx
-    public class ContactContext : DbContext
-    {
-        public string myConn = @"Server=CS302\\SQLEXPRESS,53437;Database=Contacts;User ID=sqlusr;Password=sqluser123!";
-        public ContactContext()
-        {
+            // LIST RECORDS
+            Console.WriteLine("");
+            Console.WriteLine("Listing records...");
+            var contactList = from b in context.Contacts
+                        select b;
 
-        }
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer(myConn);
-        }
+            Console.WriteLine("");
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
+            Console.WriteLine(String.Join(" \n", contactList.Select
+                (e => $"ContactName: {e.ContactName}\n" +
+                $"ContactEmail: {e.ContactEmail}\n" +
+                $"ContactPhoneType: {e.ContactPhoneType}\n" +
+                $"ContactPhoneNumber: {e.ContactPhoneNumber}\n" +
+                $"ContactAge: {e.ContactAge}\n" +
+                $"ContactNotes: {e.ContactNotes}\n" +
+                $"ContactCreatedDate: {e.ContactCreatedDate}\n" +
+                $"\n")
+                ).ToArray());
+
+            // DELETE RECORDS
+            Console.WriteLine("");
+            var deleteList = from b in context.Contacts
+                              select b;
+
+            foreach (var delete in deleteList)
+            {
+                Console.WriteLine("Deleting contact...");
+                Console.WriteLine(
+                    "ContactName: " + delete.ContactName + "\n" +
+                    "ContactCreatedDate: " + delete.ContactCreatedDate
+                    );
+                context.Contacts.Remove(delete);
+            }
+            context.SaveChanges();
+
+            // LIST RECORDS
+            Console.WriteLine("");
+            Console.WriteLine("Listing records...");
+            var queryList = from b in context.Contacts
+                              select b;
+
+            Console.WriteLine("");
+
+            Console.WriteLine(String.Join(" \n", queryList.Select
+                (e => $"ContactName: {e.ContactName}\n" +
+                $"ContactEmail: {e.ContactEmail}\n" +
+                $"ContactPhoneType: {e.ContactPhoneType}\n" +
+                $"ContactPhoneNumber: {e.ContactPhoneNumber}\n" +
+                $"ContactAge: {e.ContactAge}\n" +
+                $"ContactNotes: {e.ContactNotes}\n" +
+                $"ContactCreatedDate: {e.ContactCreatedDate}\n" +
+                $"\n")
+                ).ToArray());
         }
-        //entities
-        public DbSet<Contact> Contacts { get; set; }
     }
 }
